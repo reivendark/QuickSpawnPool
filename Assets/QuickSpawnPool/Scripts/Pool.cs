@@ -10,6 +10,7 @@ namespace QuickSpawnPool
     {
         public static Dictionary<string, Queue<Transform>> PoolWithTransforms { get; private set; }
         public static Dictionary<string, Queue<IPoolable>> PoolWithScripts { get; private set; }
+        public static Dictionary<int, Queue<Transform>> PoolWithThingies { get; private set; } 
     
         public static bool IsInitialized { get; private set; }
     
@@ -20,6 +21,9 @@ namespace QuickSpawnPool
         private static Transform _container;
         private static PoolEntity _poolEntity;
     
+        /// <summary>
+        /// Reset and init Spawn Pool. Call it somewhere on aplication start
+        /// </summary>
         public static void Reset()
         {
 
@@ -44,6 +48,7 @@ namespace QuickSpawnPool
     
             PoolWithTransforms = new Dictionary<string, Queue<Transform>>();
             PoolWithScripts = new Dictionary<string, Queue<IPoolable>>();
+            PoolWithThingies = new Dictionary<int, Queue<Transform>>();
     
             #if(POOL_STATISTICS && UNITY_EDITOR)
             PoolStatistics.Initialize();
@@ -54,6 +59,9 @@ namespace QuickSpawnPool
             IsInitialized = true;
         }
     
+        /// <summary>
+        /// Destroys Spawn Pool
+        /// </summary>
         public static void Destroy()
         {
             if(!IsInitialized)
@@ -63,11 +71,22 @@ namespace QuickSpawnPool
     
             PoolWithTransforms = null;
             PoolWithScripts = null;
+            PoolWithThingies = null;
             _poolEntity = null;
     
             IsInitialized = false;
         }
-    
+
+        /// <summary>
+        /// Get object of type Transform from Spawn Pool or Instantiate from prefab
+        /// </summary>
+        /// <param name="prefab">Reference to prefab</param>
+        /// <returns></returns>
+        public static Transform SpawnTransform(Transform prefab)
+        {
+            return SpawnTransform(prefab, Vector3.zero, Quaternion.identity);
+        }
+
         /// <summary>
         /// Get object of type Transform from Spawn Pool or Instantiate from prefab
         /// </summary>
@@ -105,7 +124,17 @@ namespace QuickSpawnPool
 
             return InstantiateTransform(prefab, position, rotation);
         }
-    
+
+        /// <summary>
+        /// Get object of type IPoolable from Spawn Pool or Instantiate from prefab
+        /// </summary>
+        /// <param name="prefab">Reference to prefab</param>
+        /// <returns></returns>
+        public static IPoolable SpawnPoolable(Transform prefab)
+        {
+            return SpawnPoolable(prefab, Vector3.zero, Quaternion.identity);
+        }
+
         /// <summary>
         /// Get object of type IPoolable from Spawn Pool or Instantiate from prefab
         /// </summary>
@@ -149,6 +178,70 @@ namespace QuickSpawnPool
             #endif
 
             return InstantiatePoolable(prefab, position, rotation);
+        }
+
+        public static PoolableThingy SpawnThingy(Transform prefab, Vector3 pos, Quaternion rot)
+        {
+            var id = prefab.GetInstanceID();
+            if(PoolWithThingies.ContainsKey(id) && PoolWithThingies[id].Count > 0)
+            {
+                PoolableThingy poolable;
+
+                poolable.t = PoolWithThingies[id].Dequeue();
+                poolable.id = id;
+
+                Transform pooledTransform = poolable.t;
+                pooledTransform.position = pos;
+                pooledTransform.rotation = rot;
+                poolable.t.gameObject.SetActive(true);
+
+                return poolable;
+            }           
+
+            return InstantiateThingy(prefab, pos, rot);
+        }
+
+        private static PoolableThingy InstantiateThingy(
+            Transform prefab, 
+            Vector3 position, 
+            Quaternion rotation)
+        {
+            #if(POOL_STATISTICS && UNITY_EDITOR)
+            if(prefab == null)
+            {
+                Debug.LogError("Pool.InstantiateTransform(Transform prefab, Vector3 position, Quaternion rotation) prefab == null");
+                return new PoolableThingy();
+            }
+            #endif
+            
+            PoolableThingy pooledObject;
+            pooledObject.id = prefab.GetInstanceID();
+            pooledObject.t = Object.Instantiate(prefab, position, rotation) as Transform;
+        
+            pooledObject.t.name = prefab.name;
+            pooledObject.t.parent = _container;
+
+            return pooledObject;
+        }
+
+        public static void DespawnThingy(PoolableThingy instance)
+        {
+            instance.t.gameObject.SetActive(false);
+
+            if(PoolWithThingies.ContainsKey(instance.id))
+            {
+                Queue<Transform> instances = PoolWithThingies[instance.id];
+                instances.Enqueue(instance.t);
+            }
+            else
+            {
+                Queue<Transform> instances = new Queue<Transform>();
+                instances.Enqueue(instance.t);
+
+                PoolWithThingies.Add(instance.id, instances);
+            }
+
+            instance.t.parent = _container;
         }
 
         /// <summary>
@@ -232,7 +325,9 @@ namespace QuickSpawnPool
 
             return InstantiatePoolable(prefab, position, rotation);
         }
-    
+
+        
+
         /// <summary>
         /// Asynchronously get object of type Transform from Spawn Pool or load from 'Resources' folder
         /// </summary>
@@ -609,6 +704,12 @@ namespace QuickSpawnPool
             #endif
 
             return poolable;
+        }
+
+        public struct PoolableThingy
+        {
+            public Transform t;
+            public int id;
         }
     }
 }

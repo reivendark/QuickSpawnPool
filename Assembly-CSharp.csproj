@@ -46,6 +46,7 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\QuickSpawnPool\Examples\Scripts\TestScript.cs" />
      <Compile Include="Assets\QuickSpawnPool\Scripts\CoroutinesHelper.cs" />
      <Compile Include="Assets\QuickSpawnPool\Scripts\IPoolable.cs" />
      <Compile Include="Assets\QuickSpawnPool\Scripts\Pool.cs" />
@@ -53,6 +54,7 @@
      <Compile Include="Assets\QuickSpawnPool\Scripts\PoolStatistics.cs" />
      <Compile Include="Assets\QuickSpawnPool\Scripts\ResourceLoadHelper.cs" />
      <Compile Include="Assets\QuickSpawnPool\Scripts\XMLUtility.cs" />
+     <None Include="Assets\TODO.txt" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
  </Reference>

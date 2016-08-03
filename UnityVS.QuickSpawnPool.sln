@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2015
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnityVS.QuickSpawnPool.CSharp", "UnityVS.QuickSpawnPool.CSharp.csproj", "{BC681DC2-4EA3-81EF-9A49-DA2564CD6FA4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnityVS.QuickSpawnPool.CSharp.Editor", "UnityVS.QuickSpawnPool.CSharp.Editor.csproj", "{03798ED2-DF89-F5FC-6427-D5E7E6FB80BA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BC681DC2-4EA3-81EF-9A49-DA2564CD6FA4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC681DC2-4EA3-81EF-9A49-DA2564CD6FA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC681DC2-4EA3-81EF-9A49-DA2564CD6FA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC681DC2-4EA3-81EF-9A49-DA2564CD6FA4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{03798ED2-DF89-F5FC-6427-D5E7E6FB80BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{03798ED2-DF89-F5FC-6427-D5E7E6FB80BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{03798ED2-DF89-F5FC-6427-D5E7E6FB80BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{03798ED2-DF89-F5FC-6427-D5E7E6FB80BA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
