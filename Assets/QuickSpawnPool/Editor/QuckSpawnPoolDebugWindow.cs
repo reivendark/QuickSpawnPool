@@ -8,8 +8,8 @@ namespace QuickSpawnPool
     public class QuckSpawnPoolDebugWindow : EditorWindow
     {
         private static string LevelName;
-        private static Dictionary<string, PoolStatistics.PoolElementData> TransformStorage;
-        private static Dictionary<string, PoolStatistics.PoolElementData> PoolableStorage;
+        private static Dictionary<int, PoolStatistics.PoolElementData> TransformStorage;
+        private static Dictionary<int, PoolStatistics.PoolElementData> PoolableStorage;
 
         private Vector2 transformScrollViewPos;
         private Vector2 poolableScrollViewPos;
@@ -125,7 +125,7 @@ namespace QuickSpawnPool
             }, null, Color.red);
         }
 
-        private void ShowTransformsResult(Dictionary<string, PoolStatistics.PoolElementData> transformStorage)
+        private void ShowTransformsResult(Dictionary<int, PoolStatistics.PoolElementData> transformStorage)
         {
             if (transformStorage == null) return;
             ET.VerticalBoxBegin();
@@ -141,7 +141,7 @@ namespace QuickSpawnPool
             ET.VerticalBoxEnd();
         }
 
-        private void ShowIPoolablesResult(Dictionary<string, PoolStatistics.PoolElementData> poolableStorage)
+        private void ShowIPoolablesResult(Dictionary<int, PoolStatistics.PoolElementData> poolableStorage)
         {
             if (poolableStorage == null) return;
             ET.VerticalBoxBegin();
@@ -180,10 +180,10 @@ namespace QuickSpawnPool
             GUI.color = Color.white;
         }
 
-        private void DrawElement(KeyValuePair<string, PoolStatistics.PoolElementData> data, int index)
+        private void DrawElement(KeyValuePair<int, PoolStatistics.PoolElementData> data, int index)
         {
             ET.HorizontalBoxBegin();
-            string elementName = data.Key;
+            string elementName = data.Value.name;
             int spawnedAmount = data.Value.spawnCount;
             int despawnedAmount = data.Value.despawnCount;
             int instances = data.Value.instances;

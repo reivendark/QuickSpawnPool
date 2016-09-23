@@ -19,8 +19,9 @@ namespace QuickSpawnPool
         public PoolPrefab[] PreloadPrefabs;
         public PoolPath[] PreloadPaths;
     
-        private List<TransformTimer> _transformTrashList;
         private List<IPoolableTimer> _poolableTrashList;
+        private List<ThingyTimer> _thingyTrashList;
+        private List<IThingyTimer> _iThingyTrashList;
 
         #if(ADVANCED_COROUTINES)
         private Routine deleteByTimeCoroutine;
@@ -30,8 +31,9 @@ namespace QuickSpawnPool
 
         protected void Awake()
         {
-            _transformTrashList = new List<TransformTimer>();
             _poolableTrashList = new List<IPoolableTimer>();
+            _thingyTrashList = new List<ThingyTimer>();
+            _iThingyTrashList = new List<IThingyTimer>();
             
             #if(ADVANCED_COROUTINES)
             deleteByTimeCoroutine = CoroutineManager.StartCoroutine(DeleteByTimeCoroutine(), gameObject);
@@ -59,14 +61,15 @@ namespace QuickSpawnPool
                 #if(ADVANCED_COROUTINES)
                 CoroutineManager.StopCoroutine(deleteByTimeCoroutine);
                 #else
-                CoroutinesHelper.StopCoroutine(deleteByTimeCoroutine);
+                PoolCoroutine.StopCoroutine(deleteByTimeCoroutine);
                 #endif
 
                 deleteByTimeCoroutine = null;
             }
 
-            _transformTrashList = null;
             _poolableTrashList = null;
+            _thingyTrashList = null;
+            _iThingyTrashList = null;
         }
     
         /// <summary>
@@ -84,20 +87,23 @@ namespace QuickSpawnPool
                 Pool.PreSpawn(PreloadPaths[iPath].Path, PreloadPaths[iPath].Count);
             }
         }
-    
-        /// <summary>
-        /// Add Transform to the list of timer-tracked objects
-        /// </summary>
-        /// <param name="instance">Transform instance</param>
-        /// <param name="timer">Time in seconds after wich Transform will be pushed back into Spawn Pool</param>
-        public void AddToTrash(Transform instance, float timer)
+
+        public void AddToTrash(Pool.PoolableThingy thingy, float timer)
         {
-            TransformTimer transformTimer;
-            transformTimer.transform = instance;
-            transformTimer.time = timer;
-            _transformTrashList.Add(transformTimer);    
+            ThingyTimer thingyTimer;
+            thingyTimer.thingy = thingy;
+            thingyTimer.timer = timer;
+            _thingyTrashList.Add(thingyTimer);
         }
-    
+
+        public void AddToTrash(Pool.IPoolableThingy thingy, float timer)
+        {
+            IThingyTimer thingyTimer;
+            thingyTimer.thingy = thingy;
+            thingyTimer.timer = timer;
+            _iThingyTrashList.Add(thingyTimer);
+        }
+
         /// <summary>
         /// Add IPoolable to the list of timer-tracked objects
         /// </summary>
@@ -215,36 +221,36 @@ namespace QuickSpawnPool
                 yield return new WaitForSeconds(0.1f);
                 #endif
 
-                for(int iTransform = 0; iTransform < _transformTrashList.Count; iTransform++)
+                for (int i = 0; i < _iThingyTrashList.Count; i++)
                 {
-                    TransformTimer timer = _transformTrashList[iTransform];
-                    timer.time -= 0.5f;
+                    IThingyTimer timer = _iThingyTrashList[i];
+                    timer.timer -= 0.1f;
 
-                    if(timer.time <= 0)
+                    if(timer.timer <= 0)
                     {
-                        Pool.DespawnTransform(timer.transform);
-                        _transformTrashList.RemoveAt(iTransform);
-                        iTransform--;
+                        Pool.DespawnIThingy(timer.thingy);
+                        _thingyTrashList.RemoveAt(i);
+                        i--;
                         continue;
                     }
 
-                    _transformTrashList[iTransform] = timer;
+                    _iThingyTrashList[i] = timer;
                 }
 
-                for(int iPT = 0; iPT < _poolableTrashList.Count; iPT++)
+                for (int iThingy = 0; iThingy < _thingyTrashList.Count; iThingy++)
                 {
-                    IPoolableTimer timer = _poolableTrashList[iPT];
-                    timer.time -= 0.1f;
+                    ThingyTimer timer = _thingyTrashList[iThingy];
+                    timer.timer -= 0.1f;
 
-                    if(timer.time <= 0)
+                    if(timer.timer <= 0)
                     {
-                        Pool.DespawnPoolable(timer.poolable);
-                        _poolableTrashList.RemoveAt(iPT);
-                        iPT--;
+                        Pool.DespawnThingy(timer.thingy);
+                        _thingyTrashList.RemoveAt(iThingy);
+                        iThingy--;
                         continue;
                     }
 
-                    _poolableTrashList[iPT] = timer;
+                    _thingyTrashList[iThingy] = timer;
                 }
             } while(true);
         }
@@ -274,7 +280,13 @@ namespace QuickSpawnPool
                 Count = count;
             }
         }
-    
+
+        public struct ThingyTimer
+        {
+            public float timer;
+            public Pool.PoolableThingy thingy;
+        }
+
         public struct TransformTimer
         {
             public float time;
@@ -285,6 +297,12 @@ namespace QuickSpawnPool
         {
             public float time;
             public IPoolable poolable;
+        }
+
+        public struct IThingyTimer
+        {
+            public float timer;
+            public Pool.IPoolableThingy thingy;
         }
     }
 }

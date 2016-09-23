@@ -39,8 +39,8 @@ namespace QuickSpawnPool
         public static void
         SavePoolInstancesStatistics(
             string SceneName, 
-            Dictionary<string, PoolStatistics.PoolElementData> TransformStorage,
-            Dictionary<string, PoolStatistics.PoolElementData> PoolableStorage)
+            Dictionary<int, PoolStatistics.PoolElementData> TransformStorage,
+            Dictionary<int, PoolStatistics.PoolElementData> PoolableStorage)
         {
             if(string.IsNullOrEmpty(SceneName))
             {
@@ -86,7 +86,7 @@ namespace QuickSpawnPool
 
         private static void 
         CompareXMLAndRuntimeData(
-            Dictionary<string, PoolStatistics.PoolElementData> storage, 
+            Dictionary<int, PoolStatistics.PoolElementData> storage, 
             ref Dictionary<string, int> instacesData)
         {
             foreach (var data in storage)

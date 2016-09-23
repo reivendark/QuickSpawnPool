@@ -1,4 +1,4 @@
-﻿#if(POOL_STATISTICS && UNITY_EDITOR)
+﻿#if(UNITY_EDITOR)
 using System;
 using System.Collections.Generic;
 using UnityEditor;
@@ -8,29 +8,29 @@ namespace QuickSpawnPool
 {
     public class PoolStatistics
     {
-        public Dictionary<string, PoolElementData> TransformStorage { get; private set; }
-        public Dictionary<string, PoolElementData> PoolableStorage { get; private set; }
+        public Dictionary<int, PoolElementData> TransformStorage { get; private set; }
+        public Dictionary<int, PoolElementData> PoolableStorage { get; private set; }
 
         public void Initialize()
         {
-            TransformStorage = new Dictionary<string, PoolElementData>();
-            PoolableStorage = new Dictionary<string, PoolElementData>();
+            TransformStorage = new Dictionary<int, PoolElementData>();
+            PoolableStorage = new Dictionary<int, PoolElementData>();
         }
 
         internal void CheckSpawnTransform(Transform prefab)
         {
-            string name = prefab.name;
-            if(TransformStorage.ContainsKey(name))
+            int id = prefab.GetInstanceID();
+            if(TransformStorage.ContainsKey(id))
             {
-                PoolElementData ped = TransformStorage[name];
+                PoolElementData ped = TransformStorage[id];
                 ped.instances++;
-                TransformStorage[name] = ped;
+                TransformStorage[id] = ped;
                 return;
             }
 
             string path = AssetDatabase.GetAssetPath(prefab.gameObject);
 
-            TransformStorage.Add(name, new PoolElementData(path, 0, 0, 1));
+            TransformStorage.Add(id, new PoolElementData(prefab.name, path, 0, 0, 1));
 
             if(prefab.GetComponent<IPoolable>() != null)
             {
@@ -38,14 +38,14 @@ namespace QuickSpawnPool
             }
         }
 
-        internal void TrySpawnTransform(Transform prefab)
+        internal void TrySpawnTransform(Pool.PoolableThingy pooledPrefab)
         {
-            string name = prefab.name;
-            if(TransformStorage.ContainsKey(name))
+            int id = pooledPrefab.id;
+            if(TransformStorage.ContainsKey(id))
             {
-                PoolElementData ped = TransformStorage[name];
+                PoolElementData ped = TransformStorage[id];
                 ped.spawnCount++;
-                TransformStorage[name] = ped;
+                TransformStorage[id] = ped;
             }
             else
             {
@@ -53,36 +53,35 @@ namespace QuickSpawnPool
             }
         }
 
-        internal void CheckSpawnPoolable(Transform prefab)
+        internal void CheckSpawnPoolable(Transform pooledPrefab)
         {
-            string name = prefab.name;
-            if(PoolableStorage.ContainsKey(name))
+            int id = pooledPrefab.GetInstanceID();
+            if(PoolableStorage.ContainsKey(id))
             {
-                PoolElementData ped = PoolableStorage[name];
+                PoolElementData ped = PoolableStorage[id];
                 ped.instances++;
-                PoolableStorage[name] = ped;
+                PoolableStorage[id] = ped;
                 return;
             }
 
-            string path = AssetDatabase.GetAssetPath(prefab.gameObject);
+            string path = AssetDatabase.GetAssetPath(pooledPrefab.gameObject);
 
-            PoolableStorage.Add(name, new PoolElementData(path, 0, 0, 1));
+            PoolableStorage.Add(id, new PoolElementData(pooledPrefab.name, path, 0, 0, 1));
 
-            IPoolable poolable = prefab.GetComponent<IPoolable>();
+            IPoolable poolable = pooledPrefab.GetComponent<IPoolable>();
             if(poolable == null)
             {
-                Debug.LogError("[Pool] You're trying to spawn Transform like IPoolable. Name: " + prefab.name);
+                Debug.LogError("[Pool] You're trying to spawn Transform like IPoolable. Name: " + pooledPrefab.name);
             }
         }
 
-        internal void TrySpawnIPoolable(IPoolable poolable)
+        internal void TrySpawnIPoolable(Pool.IPoolableThingy poolable)
         {
-            string name = poolable.transform.name;
-            if(PoolableStorage.ContainsKey(name))
+            if(PoolableStorage.ContainsKey(poolable.id))
             {
-                PoolElementData ped = PoolableStorage[name];
+                PoolElementData ped = PoolableStorage[poolable.id];
                 ped.spawnCount++;
-                PoolableStorage[name] = ped;
+                PoolableStorage[poolable.id] = ped;
             }
             else
             {
@@ -90,22 +89,21 @@ namespace QuickSpawnPool
             }
         }
 
-        internal void CheckDespawnTransform(Transform prefab)
+        internal void CheckDespawnTransform(Pool.PoolableThingy prefab)
         {
-            if(prefab.GetComponent<IPoolable>() != null)
+            if(prefab.t.GetComponent<IPoolable>() != null)
             {
-                Debug.LogError("[Pool] You're trying to despawn IPoolable like Transform. Name: " + prefab.name);
+                Debug.LogError("[Pool] You're trying to despawn IPoolable like Transform. Name: " + prefab.t.name);
             }
         }
 
-        internal void TryDespawnTransform(Transform prefab)
+        internal void TryDespawnTransform(Pool.PoolableThingy prefab)
         {
-            string name = prefab.name;
-            if(TransformStorage.ContainsKey(name))
+            if(TransformStorage.ContainsKey(prefab.id))
             {
-                PoolElementData ped = TransformStorage[name];
+                PoolElementData ped = TransformStorage[prefab.id];
                 ped.despawnCount++;
-                TransformStorage[name] = ped;
+                TransformStorage[prefab.id] = ped;
             }
             else
             {
@@ -113,23 +111,22 @@ namespace QuickSpawnPool
             }
         }
 
-        internal void CheckDespawnPoolable(Transform prefab)
+        internal void CheckDespawnPoolable(Pool.IPoolableThingy prefab)
         {
-            IPoolable poolable = prefab.GetComponent<IPoolable>();
+            IPoolable poolable = prefab.poolable.transform.GetComponent<IPoolable>();
             if(poolable == null)
             {
-                Debug.LogError("[Pool] You're trying to despawn Transform like IPoolable. Name: " + prefab.name);
+                Debug.LogError("[Pool] You're trying to despawn Transform like IPoolable. Name: " + prefab.poolable.transform);
             }
         }
 
-        internal void TryDespawnIPoolable(IPoolable poolable)
+        internal void TryDespawnIPoolable(Pool.IPoolableThingy poolable)
         {
-            string name = poolable.transform.name;
-            if(PoolableStorage.ContainsKey(name))
+            if(PoolableStorage.ContainsKey(poolable.id))
             {
-                PoolElementData ped = PoolableStorage[name];
+                PoolElementData ped = PoolableStorage[poolable.id];
                 ped.despawnCount++;
-                PoolableStorage[name] = ped;
+                PoolableStorage[poolable.id] = ped;
             }
             else
             {
@@ -139,13 +136,15 @@ namespace QuickSpawnPool
 
         public struct PoolElementData
         {
+            public string name;
             public int spawnCount;
             public int despawnCount;
             public int instances;
             public string path;
 
-            public PoolElementData(string path, int spawnCount, int despawnCount, int instances)
+            public PoolElementData(string name, string path, int spawnCount, int despawnCount, int instances)
             {
+                this.name = name;
                 this.path = path;
                 this.spawnCount = spawnCount;
                 this.despawnCount = despawnCount;
